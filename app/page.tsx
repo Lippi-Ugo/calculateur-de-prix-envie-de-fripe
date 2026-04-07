@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { PriceCalculator } from "@/components/price-calculator"
 
 export default function Home() {
@@ -11,6 +12,9 @@ export default function Home() {
         <p className="text-sm text-muted-foreground">
           Calculateur de prix pour vêtements de seconde main
         </p>
+        <Link href="/admin" className="text-sm text-gold hover:text-gold-light mt-2 inline-block">
+          Administration
+        </Link>
       </footer>
     </main>
   )
