@@ -16,26 +16,24 @@ const fredoka = Fredoka({
 })
 
 export const metadata: Metadata = {
-  title: 'Calculateur de Prix - Seconde Main',
+  title: "En'vie de Frip - Calculateur de Prix",
   description: 'Calculez le prix de revente de vos vêtements de marque',
-  generator: 'v0.app',
   icons: {
     icon: [
       {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
+        url: '/favicon-96x96.png',
+        sizes: '96x96',
+        type: 'image/png',
       },
       {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
+        url: '/favicon.svg',
         type: 'image/svg+xml',
       },
     ],
-    apple: '/apple-icon.png',
+    apple: '/apple-touch-icon.png',
+    shortcut: '/favicon.ico',
   },
+  manifest: '/site.webmanifest',
 }
 
 export default function RootLayout({
