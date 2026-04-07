@@ -20,6 +20,8 @@ export function BrandManager() {
   const [newBrandPrice, setNewBrandPrice] = useState("")
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editPrice, setEditPrice] = useState("")
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   const supabase = createClient()
 
@@ -41,16 +43,45 @@ export function BrandManager() {
     fetchBrands()
   }, [])
 
+  // Auto-dismiss messages après 4 secondes
+  useEffect(() => {
+    if (errorMessage || successMessage) {
+      const timer = setTimeout(() => {
+        setErrorMessage(null)
+        setSuccessMessage(null)
+      }, 4000)
+      return () => clearTimeout(timer)
+    }
+  }, [errorMessage, successMessage])
+
   async function addBrand() {
     if (!newBrandName.trim() || !newBrandPrice) return
+    
+    setErrorMessage(null)
+    setSuccessMessage(null)
+
+    // Vérifier si la marque existe déjà
+    const brandExists = brands.some(
+      (brand) => brand.name.toLowerCase() === newBrandName.trim().toLowerCase()
+    )
+
+    if (brandExists) {
+      setErrorMessage(`La marque "${newBrandName.trim()}" existe déjà.`)
+      return
+    }
 
     const { error } = await supabase
       .from("brands")
       .insert({ name: newBrandName.trim(), base_price: parseFloat(newBrandPrice) })
 
     if (error) {
-      console.error("Erreur ajout:", error)
+      if (error.code === "23505") {
+        setErrorMessage(`La marque "${newBrandName.trim()}" existe déjà.`)
+      } else {
+        setErrorMessage("Une erreur est survenue lors de l'ajout.")
+      }
     } else {
+      setSuccessMessage(`La marque "${newBrandName.trim()}" a été ajoutée.`)
       setNewBrandName("")
       setNewBrandPrice("")
       fetchBrands()
@@ -111,6 +142,18 @@ export function BrandManager() {
           </CardTitle>
         </CardHeader>
         <CardContent>
+          {/* Messages de notification */}
+          {errorMessage && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-700 font-medium">{errorMessage}</p>
+            </div>
+          )}
+          {successMessage && (
+            <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-green-700 font-medium">{successMessage}</p>
+            </div>
+          )}
+          
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 space-y-2">
               <Label htmlFor="brand-name">Nom de la marque</Label>
