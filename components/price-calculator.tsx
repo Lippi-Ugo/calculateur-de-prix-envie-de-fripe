@@ -54,32 +54,17 @@ export function PriceCalculator() {
 
   const selectedBrand = brands.find(b => b.id === selectedBrandId)
 
-  const calculation = useMemo(() => {
+  const finalPrice = useMemo(() => {
     if (!selectedBrand || !clothingType || !condition) return null
 
     const price = selectedBrand.base_price
-
-    // Étape 1: 50% du prix de base
     const step1 = price * 0.50
-
-    // Étape 2: Modificateur type de vêtement
     const clothingMod = clothingTypes.find(c => c.id === clothingType)?.modifier || 0
     const step2 = step1 * (1 + clothingMod)
-
-    // Étape 3: Modificateur état
     const conditionMod = conditions.find(c => c.id === condition)?.modifier || 0
-    const finalPrice = step2 * (1 + conditionMod)
-
-    return {
-      basePrice: price,
-      afterBase: step1,
-      afterClothing: step2,
-      finalPrice: Math.round(finalPrice * 100) / 100,
-    }
+    
+    return Math.round(step2 * (1 + conditionMod) * 100) / 100
   }, [selectedBrand, clothingType, condition])
-
-  const selectedClothing = clothingTypes.find(c => c.id === clothingType)
-  const selectedCondition = conditions.find(c => c.id === condition)
 
   return (
     <div className="w-full max-w-2xl mx-auto">
@@ -111,7 +96,7 @@ export function PriceCalculator() {
               <SelectContent>
                 {brands.map((brand) => (
                   <SelectItem key={brand.id} value={brand.id}>
-                    {brand.name} - {brand.base_price.toFixed(2)}€
+                    {brand.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -130,7 +115,7 @@ export function PriceCalculator() {
               <SelectContent>
                 {clothingTypes.map((type) => (
                   <SelectItem key={type.id} value={type.id}>
-                    {type.label} ({type.modifier >= 0 ? '+' : ''}{type.modifier * 100}%)
+                    {type.label}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -149,7 +134,7 @@ export function PriceCalculator() {
               <SelectContent>
                 {conditions.map((cond) => (
                   <SelectItem key={cond.id} value={cond.id}>
-                    {cond.label} ({cond.modifier * 100}%)
+                    {cond.label}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -158,21 +143,12 @@ export function PriceCalculator() {
 
           {/* Résultat */}
           <div className="pt-4 border-t border-border">
-            {calculation ? (
+            {finalPrice !== null ? (
               <div className="text-center py-6 bg-[#B8860B]/10 rounded-xl">
                 <p className="text-sm text-muted-foreground mb-2">Prix estimé</p>
                 <span className="font-display text-5xl md:text-6xl text-[#8B5A2B]">
-                  {calculation.finalPrice.toFixed(2)}€
+                  {finalPrice.toFixed(2)}€
                 </span>
-                <div className="mt-4 text-sm text-muted-foreground space-y-1">
-                  <p>Base: {calculation.basePrice.toFixed(2)}€ × 50% = {calculation.afterBase.toFixed(2)}€</p>
-                  <p>
-                    {selectedClothing?.label}: {calculation.afterBase.toFixed(2)}€ × {selectedClothing?.modifier && selectedClothing.modifier >= 0 ? '+' : ''}{(selectedClothing?.modifier || 0) * 100}% = {calculation.afterClothing.toFixed(2)}€
-                  </p>
-                  <p>
-                    {selectedCondition?.label}: {calculation.afterClothing.toFixed(2)}€ × {(selectedCondition?.modifier || 0) * 100}% = {calculation.finalPrice.toFixed(2)}€
-                  </p>
-                </div>
               </div>
             ) : (
               <div className="text-center py-6 text-muted-foreground">
