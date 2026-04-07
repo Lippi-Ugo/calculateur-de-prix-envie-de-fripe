@@ -75,4 +75,41 @@
   .font-display {
     font-family: var(--font-display), system-ui, sans-serif;
   }
+  
+  /* Typographie - Handy Mode style (Fredoka) */
+  .titre-1 {
+    font-family: var(--font-display), system-ui, sans-serif;
+    font-size: 48px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  
+  .titre-2 {
+    font-family: var(--font-display), system-ui, sans-serif;
+    font-size: 36px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  
+  .titre-3 {
+    font-family: var(--font-display), system-ui, sans-serif;
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  
+  /* Typographie - Poppins */
+  .titre-4 {
+    font-family: var(--font-poppins), system-ui, sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+  
+  .text-body {
+    font-family: var(--font-poppins), system-ui, sans-serif;
+    font-size: 16px;
+    font-weight: 300;
+    line-height: 1.5;
+  }
 }
