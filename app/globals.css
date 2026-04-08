@@ -1,35 +1,33 @@
-@import 'tailwindcss';
-@import 'tw-animate-css';
+@import "tailwindcss";
+@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #F9F7F2;
-  --foreground: #1A1A1A;
-  --card: #FFFFFF;
-  --card-foreground: #1A1A1A;
-  --popover: #FFFFFF;
-  --popover-foreground: #1A1A1A;
-  --primary: #B8860B;
-  --primary-foreground: #FFFFFF;
-  --secondary: #E0E0E0;
-  --secondary-foreground: #1A1A1A;
-  --muted: #E0E0E0;
-  --muted-foreground: #6B6B6B;
-  --accent: #D4AF37;
-  --accent-foreground: #1A1A1A;
-  --destructive: #DC2626;
-  --destructive-foreground: #FFFFFF;
-  --border: #E0E0E0;
-  --input: #E0E0E0;
-  --ring: #B8860B;
-  --gold-dark: #8B5A2B;
-  --gold: #B8860B;
-  --gold-light: #D4AF37;
-  --radius: 0.75rem;
+  --background: #f9f7f2;
+  --foreground: #1a1a1a;
+  --card: #ffffff;
+  --card-foreground: #1a1a1a;
+  --popover: #ffffff;
+  --popover-foreground: #1a1a1a;
+  --primary: #b8860b;
+  --primary-foreground: #ffffff;
+  --secondary: #efe7da;
+  --secondary-foreground: #1a1a1a;
+  --muted: #f3eee5;
+  --muted-foreground: #6b6b6b;
+  --accent: #d4af37;
+  --accent-foreground: #1a1a1a;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #e5dccd;
+  --input: #e5dccd;
+  --ring: #b8860b;
+  --gold-dark: #8b5a2b;
+  --gold: #b8860b;
+  --gold-light: #d4af37;
+  --radius: 1rem;
 }
-
-
 
 @theme inline {
   --font-sans: var(--font-poppins), system-ui, sans-serif;
@@ -56,18 +54,29 @@
   --color-gold-dark: var(--gold-dark);
   --color-gold: var(--gold);
   --color-gold-light: var(--gold-light);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 6px);
+  --radius-md: calc(var(--radius) - 3px);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-xl: calc(var(--radius) + 6px);
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-ring/40;
+    box-sizing: border-box;
   }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply bg-background text-foreground;
+    min-height: 100vh;
+  }
+
+  ::selection {
+    background: rgba(184, 134, 11, 0.18);
   }
 }
 
@@ -75,41 +84,12 @@
   .font-display {
     font-family: var(--font-display), system-ui, sans-serif;
   }
-  
-  /* Typographie - Handy Mode style (Fredoka) */
-  .titre-1 {
-    font-family: var(--font-display), system-ui, sans-serif;
-    font-size: 48px;
-    font-weight: 600;
-    line-height: 1.2;
+
+  .surface-soft {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(250, 246, 239, 0.96) 100%);
   }
-  
-  .titre-2 {
-    font-family: var(--font-display), system-ui, sans-serif;
-    font-size: 36px;
-    font-weight: 600;
-    line-height: 1.2;
-  }
-  
-  .titre-3 {
-    font-family: var(--font-display), system-ui, sans-serif;
-    font-size: 24px;
-    font-weight: 600;
-    line-height: 1.3;
-  }
-  
-  /* Typographie - Poppins */
-  .titre-4 {
-    font-family: var(--font-poppins), system-ui, sans-serif;
-    font-size: 20px;
-    font-weight: 500;
-    line-height: 1.4;
-  }
-  
-  .text-body {
-    font-family: var(--font-poppins), system-ui, sans-serif;
-    font-size: 16px;
-    font-weight: 300;
-    line-height: 1.5;
+
+  .gold-ring {
+    box-shadow: 0 0 0 1px rgba(184, 134, 11, 0.16);
   }
 }
