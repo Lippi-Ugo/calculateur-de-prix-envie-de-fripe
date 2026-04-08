@@ -133,8 +133,8 @@ export function BrandManager() {
         </p>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[380px_1fr]">
-        <Card className="border border-[#e7dfd1] bg-white/95 shadow-[0_18px_50px_rgba(62,43,14,0.08)]">
+      <div className="grid items-start gap-6 xl:grid-cols-[380px_1fr]">
+        <Card className="self-start border border-[#e7dfd1] bg-white/95 shadow-[0_18px_50px_rgba(62,43,14,0.08)]">
           <CardHeader className="border-b border-[#efe7da] bg-gradient-to-b from-[#fffdfa] to-[#f8f3ea]">
             <CardTitle className="font-display text-2xl text-[#8B5A2B]">
               Ajouter une marque
