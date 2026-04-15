@@ -7,12 +7,15 @@ export default function Home() {
       <div className="container mx-auto px-4 py-8 md:py-12">
         <PriceCalculator />
       </div>
-      
-      <footer className="py-6 text-center border-t border-border">
+
+      <footer className="border-t border-border py-6 text-center">
         <p className="text-sm text-muted-foreground">
           Calculateur de prix pour vêtements de seconde main
         </p>
-        <Link href="/admin" className="text-sm text-gold hover:text-gold-light mt-2 inline-block">
+        <Link
+          href="/admin"
+          className="mt-2 inline-block text-sm text-gold hover:text-gold-light"
+        >
           Administration
         </Link>
       </footer>
