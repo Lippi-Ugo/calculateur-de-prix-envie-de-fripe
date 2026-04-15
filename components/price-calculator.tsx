@@ -18,6 +18,7 @@ const clothingTypes = [
   { id: "tshirt", label: "T-Shirt", modifier: -0.2 },
   { id: "tenue", label: "Tenue", modifier: 0.1 },
   { id: "chaussures", label: "Chaussures", modifier: 0.15 },
+  { id: "sac", label: "Sac à Main", modifier: 0.05 },
 ]
 
 const shoeGroups = [
