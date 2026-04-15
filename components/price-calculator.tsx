@@ -17,6 +17,33 @@ const clothingTypes = [
   { id: "bas", label: "Bas", modifier: -0.1 },
   { id: "tshirt", label: "T-Shirt", modifier: -0.2 },
   { id: "tenue", label: "Tenue", modifier: 0.1 },
+  { id: "chaussures", label: "Chaussures", modifier: 0.15 },
+]
+
+const shoeGroups = [
+  {
+    label: "Mixte",
+    items: [
+      { id: "basket", label: "Basket", modifier: 0 },
+      { id: "autres", label: "Autres", modifier: -0.1 },
+    ],
+  },
+  {
+    label: "Femme",
+    items: [
+      { id: "botte-bottine", label: "Botte / Bottine", modifier: 0.1 },
+      { id: "talon", label: "Chaussure à talon", modifier: 0.05 },
+      { id: "plate", label: "Plate", modifier: -0.05 },
+      { id: "sandales", label: "Sandales", modifier: -0.15 },
+    ],
+  },
+  {
+    label: "Homme",
+    items: [
+      { id: "montante", label: "Chaussure Montante", modifier: 0.1 },
+      { id: "ville", label: "Chaussure Ville", modifier: -0.05 },
+    ],
+  },
 ]
 
 const conditions = [
@@ -30,6 +57,7 @@ export function PriceCalculator() {
   const [brands, setBrands] = useState<Brand[]>([])
   const [selectedBrandId, setSelectedBrandId] = useState("")
   const [clothingType, setClothingType] = useState("")
+  const [shoeType, setShoeType] = useState("")
   const [condition, setCondition] = useState("")
   const [loading, setLoading] = useState(true)
 
@@ -52,17 +80,34 @@ export function PriceCalculator() {
 
   const selectedBrand = brands.find((brand) => brand.id === selectedBrandId)
 
+  const shoeModifier = useMemo(() => {
+    if (!shoeType) return 0
+
+    for (const group of shoeGroups) {
+      const found = group.items.find((item) => item.id === shoeType)
+      if (found) return found.modifier
+    }
+
+    return 0
+  }, [shoeType])
+
   const finalPrice = useMemo(() => {
     if (!selectedBrand || !clothingType || !condition) return null
+    if (clothingType === "chaussures" && !shoeType) return null
 
     const price = selectedBrand.base_price
     const step1 = price * 0.5
     const clothingMod = clothingTypes.find((item) => item.id === clothingType)?.modifier || 0
     const conditionMod = conditions.find((item) => item.id === condition)?.modifier || 0
-    const step2 = step1 * (1 + clothingMod)
+
+    let step2 = step1 * (1 + clothingMod)
+
+    if (clothingType === "chaussures") {
+      step2 = step2 * (1 + shoeModifier)
+    }
 
     return Math.round(step2 * (1 + conditionMod) * 100) / 100
-  }, [selectedBrand, clothingType, condition])
+  }, [selectedBrand, clothingType, shoeType, condition, shoeModifier])
 
   return (
     <Card className="overflow-hidden border border-[#e7dfd1] bg-white/95 shadow-[0_18px_50px_rgba(62,43,14,0.08)] backdrop-blur">
@@ -101,7 +146,13 @@ export function PriceCalculator() {
           <Label htmlFor="clothing-type" className="text-sm font-semibold text-foreground">
             Type de vêtement
           </Label>
-          <Select value={clothingType} onValueChange={setClothingType}>
+          <Select
+            value={clothingType}
+            onValueChange={(value) => {
+              setClothingType(value)
+              setShoeType("")
+            }}
+          >
             <SelectTrigger className="h-12 rounded-xl border-[#d9cfbf] bg-[#fffdfa] text-left text-base shadow-none">
               <SelectValue placeholder="Sélectionnez un type" />
             </SelectTrigger>
@@ -114,6 +165,47 @@ export function PriceCalculator() {
             </SelectContent>
           </Select>
         </div>
+
+        {clothingType === "chaussures" && (
+          <div className="space-y-2">
+            <Label htmlFor="shoe-type" className="text-sm font-semibold text-foreground">
+              Type de chaussure
+            </Label>
+            <Select value={shoeType} onValueChange={setShoeType}>
+              <SelectTrigger className="h-12 rounded-xl border-[#d9cfbf] bg-[#fffdfa] text-left text-base shadow-none">
+                <SelectValue placeholder="Sélectionnez un type de chaussure" />
+              </SelectTrigger>
+              <SelectContent>
+                <div className="px-2 pt-2 pb-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#8B5A2B]">
+                  Mixte
+                </div>
+                {shoeGroups[0].items.map((item) => (
+                  <SelectItem key={item.id} value={item.id}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+
+                <div className="px-2 pt-3 pb-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#8B5A2B]">
+                  Femme
+                </div>
+                {shoeGroups[1].items.map((item) => (
+                  <SelectItem key={item.id} value={item.id}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+
+                <div className="px-2 pt-3 pb-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#8B5A2B]">
+                  Homme
+                </div>
+                {shoeGroups[2].items.map((item) => (
+                  <SelectItem key={item.id} value={item.id}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         <div className="space-y-2">
           <Label htmlFor="condition" className="text-sm font-semibold text-foreground">
@@ -142,9 +234,6 @@ export function PriceCalculator() {
               <div className="mt-3 font-display text-4xl text-[#8B5A2B] sm:text-5xl">
                 {finalPrice.toFixed(2)} €
               </div>
-              <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                Cette estimation est calculée à partir du prix de base de la marque, du type de vêtement et de son état.
-              </p>
             </div>
           ) : (
             <div className="text-center text-sm leading-6 text-muted-foreground">
