@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
@@ -22,6 +22,10 @@ export function BrandManager() {
   const [editPrice, setEditPrice] = useState("")
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+
+  // NOUVEAU : États pour recherche + scroll
+  const [searchTerm, setSearchTerm] = useState("")
+  const listRef = useRef<HTMLDivElement>(null)
 
   const supabase = createClient()
 
@@ -51,6 +55,14 @@ export function BrandManager() {
       return () => clearTimeout(timer)
     }
   }, [errorMessage, successMessage])
+
+  // NOUVEAU : Filtrage des marques
+  const filteredBrands = useMemo(() => {
+    if (!searchTerm.trim()) return brands
+    return brands.filter(brand =>
+      brand.name.toLowerCase().includes(searchTerm.toLowerCase().trim())
+    )
+  }, [brands, searchTerm])
 
   async function addBrand() {
     if (!newBrandName.trim() || !newBrandPrice) return
@@ -129,11 +141,12 @@ export function BrandManager() {
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
           Ajoute, modifie ou supprime les marques et leurs prix de base dans une
-          interface simple, claire et cohérente avec l’univers En&apos;vie de Frip.
+          interface simple, claire et cohérente avec l'univers En'vie de Frip.
         </p>
       </div>
 
       <div className="grid items-start gap-6 xl:grid-cols-[380px_1fr]">
+        {/* Formulaire d'ajout - INCHANGÉ */}
         <Card className="self-start border border-[#e7dfd1] bg-white/95 shadow-[0_18px_50px_rgba(62,43,14,0.08)]">
           <CardHeader className="border-b border-[#efe7da] bg-gradient-to-b from-[#fffdfa] to-[#f8f3ea]">
             <CardTitle className="font-display text-2xl text-[#8B5A2B]">
@@ -190,90 +203,136 @@ export function BrandManager() {
           </CardContent>
         </Card>
 
+        {/* Liste MODIFIÉE : recherche + scroll */}
         <Card className="border border-[#e7dfd1] bg-white/95 shadow-[0_18px_50px_rgba(62,43,14,0.08)]">
-          <CardHeader className="border-b border-[#efe7da] bg-gradient-to-b from-[#fffdfa] to-[#f8f3ea]">
-            <CardTitle className="font-display text-2xl text-[#8B5A2B]">
-              Marques enregistrées ({brands.length})
-            </CardTitle>
+          <CardHeader className="border-b border-[#efe7da] bg-gradient-to-b from-[#fffdfa] to-[#f8f3ea] p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <CardTitle className="font-display text-2xl text-[#8B5A2B] flex-1">
+                Marques enregistrées ({filteredBrands.length})
+              </CardTitle>
+
+              {/* NOUVEAU : Barre de recherche */}
+              <div className="relative w-full sm:w-64">
+                <Input
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Rechercher une marque..."
+                  className="h-11 rounded-xl border-[#d9cfbf] bg-[#fffdfa] pl-11 pr-4"
+                />
+                <svg
+                  className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </div>
+            </div>
           </CardHeader>
 
-          <CardContent className="p-4 sm:p-6">
+          <CardContent className="p-0">
             {loading ? (
               <p className="py-10 text-center text-muted-foreground">Chargement...</p>
-            ) : brands.length === 0 ? (
-              <p className="py-10 text-center text-muted-foreground">Aucune marque enregistrée.</p>
-            ) : (
-              <div className="space-y-3">
-                {brands.map((brand) => (
-                  <div
-                    key={brand.id}
-                    className="rounded-2xl border border-[#ece2d3] bg-[#fcfaf6] p-4"
+            ) : filteredBrands.length === 0 ? (
+              <div className="py-12 text-center">
+                <p className="text-muted-foreground mb-4">
+                  {searchTerm ? "Aucune marque trouvée." : "Aucune marque enregistrée."}
+                </p>
+                {searchTerm && (
+                  <Button
+                    variant="outline"
+                    onClick={() => setSearchTerm("")}
+                    className="border-[#d6c3a3] text-[#8B5A2B]"
                   >
-                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                      <div>
-                        <p className="text-lg font-semibold text-foreground">{brand.name}</p>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          Prix de base actuel
-                        </p>
-                      </div>
+                    Effacer la recherche
+                  </Button>
+                )}
+              </div>
+            ) : (
+              // NOUVEAU : Liste avec scroll
+              <div
+                ref={listRef}
+                className="max-h-[calc(100vh-300px)] overflow-y-auto"
+                style={{ scrollbarWidth: 'thin', scrollbarColor: '#d9cfbf transparent' }}
+              >
+                <div className="space-y-3 p-4 sm:p-6">
+                  {filteredBrands.map((brand) => (
+                    <div
+                      key={brand.id}
+                      className="rounded-2xl border border-[#ece2d3] bg-[#fcfaf6] p-4 hover:shadow-md transition-all"
+                    >
+                      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                        <div>
+                          <p className="text-lg font-semibold text-foreground">{brand.name}</p>
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            Prix de base actuel
+                          </p>
+                        </div>
 
-                      {editingId === brand.id ? (
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                          <Input
-                            type="number"
-                            value={editPrice}
-                            onChange={(e) => setEditPrice(e.target.value)}
-                            className="h-11 w-full rounded-xl border-[#d9cfbf] bg-white sm:w-32"
-                          />
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              onClick={() => updateBrand(brand.id)}
-                              className="bg-[#B8860B] text-white hover:bg-[#8B5A2B]"
-                            >
-                              Enregistrer
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                setEditingId(null)
-                                setEditPrice("")
-                              }}
-                              className="border-[#d6c3a3] text-[#8B5A2B] hover:bg-[#fbf4e6]"
-                            >
-                              Annuler
-                            </Button>
+                        {editingId === brand.id ? (
+                          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                            <Input
+                              type="number"
+                              value={editPrice}
+                              onChange={(e) => setEditPrice(e.target.value)}
+                              className="h-11 w-full rounded-xl border-[#d9cfbf] bg-white sm:w-32"
+                            />
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                onClick={() => updateBrand(brand.id)}
+                                className="bg-[#B8860B] text-white hover:bg-[#8B5A2B]"
+                              >
+                                Enregistrer
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setEditingId(null)
+                                  setEditPrice("")
+                                }}
+                                className="border-[#d6c3a3] text-[#8B5A2B] hover:bg-[#fbf4e6]"
+                              >
+                                Annuler
+                              </Button>
+                            </div>
                           </div>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
-                          <span className="text-xl font-semibold text-[#8B5A2B]">
-                            {brand.base_price.toFixed(2)} €
-                          </span>
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => startEdit(brand)}
-                              className="border-[#d6c3a3] text-[#8B5A2B] hover:bg-[#fbf4e6]"
-                            >
-                              Modifier
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => deleteBrand(brand.id)}
-                              className="border-red-300 text-red-600 hover:bg-red-50"
-                            >
-                              Supprimer
-                            </Button>
+                        ) : (
+                          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+                            <span className="text-xl font-semibold text-[#8B5A2B]">
+                              {brand.base_price.toFixed(2)} €
+                            </span>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => startEdit(brand)}
+                                className="border-[#d6c3a3] text-[#8B5A2B] hover:bg-[#fbf4e6]"
+                              >
+                                Modifier
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => deleteBrand(brand.id)}
+                                className="border-red-300 text-red-600 hover:bg-red-50"
+                              >
+                                Supprimer
+                              </Button>
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             )}
           </CardContent>

@@ -1,10 +1,14 @@
-import Link from "next/link"
 import { PriceCalculator } from "@/components/price-calculator"
+import { HomeAuthMenu } from "@/components/home-auth-menu"
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 md:py-12">
+      <div className="container mx-auto px-4 py-6 md:px-6 md:py-8">
+        <header className="mb-8 flex items-center justify-end">
+          <HomeAuthMenu />
+        </header>
+
         <PriceCalculator />
       </div>
 
@@ -12,12 +16,6 @@ export default function Home() {
         <p className="text-sm text-muted-foreground">
           Calculateur de prix pour vêtements de seconde main
         </p>
-        <Link
-          href="/admin"
-          className="mt-2 inline-block text-sm text-gold hover:text-gold-light"
-        >
-          Administration
-        </Link>
       </footer>
     </main>
   )
