@@ -29,8 +29,7 @@ export default function LoginPage() {
       return
     }
 
-    router.push("/admin")
-    router.refresh()
+    window.location.href = "/admin"
   }
 
   return (
