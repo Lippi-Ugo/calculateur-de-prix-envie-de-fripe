@@ -15,7 +15,7 @@ interface Brand {
 const clothingTypes = [
   { id: "veste", label: "Veste", modifier: 0.2 },
   { id: "bas", label: "Bas", modifier: -0.1 },
-  { id: "tshirt", label: "T-Shirt", modifier: -0.2 },
+  { id: "haut", label: "Haut", modifier: -0.2 },
   { id: "tenue", label: "Tenue", modifier: 0.1 },
   { id: "chaussures", label: "Chaussures", modifier: 0.15 },
   { id: "sac", label: "Sac à Main", modifier: 0.05 },
@@ -112,7 +112,7 @@ export function PriceCalculator() {
 
   return (
     <Card className="overflow-hidden border border-[#e7dfd1] bg-white/95 shadow-[0_18px_50px_rgba(62,43,14,0.08)] backdrop-blur">
-      <CardHeader className="border-b border-[#efe7da] bg-gradient-to-b from-[#fffdfa] to-[#f8f3ea] px-5 py-6 sm:px-8">
+      <CardHeader className="border-b border-[#efe7da] bg-linear-to-b from-[#fffdfa] to-[#f8f3ea] px-5 py-6 sm:px-8">
         <div className="mb-2 inline-flex w-fit rounded-full border border-[#dcc8a4] bg-[#fbf6ed] px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-[#8B5A2B]">
           Calculateur
         </div>
