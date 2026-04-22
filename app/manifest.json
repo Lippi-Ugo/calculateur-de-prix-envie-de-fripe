@@ -1,7 +1,7 @@
 {
   "name": "En'vie de Frip - Calculateur de prix",
   "short_name": "En'vie de Frip",
-  "description": "Calculateur de prix pour vêtements de seconde main",
+  "description": "Calculez le prix de revente de vos vêtements de marque",
   "id": "/",
   "start_url": "/",
   "scope": "/",

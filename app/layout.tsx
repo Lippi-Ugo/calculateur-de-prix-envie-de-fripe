@@ -17,27 +17,6 @@ const handyMode = localFont({
   display: 'swap',
 })
 
-export const metadata: Metadata = {
-  title: "En'vie de Frip - Calculateur de Prix",
-  description: 'Calculez le prix de revente de vos vêtements de marque',
-  icons: {
-    icon: [
-      {
-        url: '/favicon-96x96.png',
-        sizes: '96x96',
-        type: 'image/png',
-      },
-      {
-        url: '/favicon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: '/apple-touch-icon.png',
-    shortcut: '/favicon.ico',
-  },
-  manifest: '/site.webmanifest',
-}
-
 export default function RootLayout({
   children,
 }: Readonly<{
