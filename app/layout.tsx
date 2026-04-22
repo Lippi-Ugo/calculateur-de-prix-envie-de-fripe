@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Poppins } from 'next/font/google'
 import localFont from 'next/font/local'
 import { Analytics } from '@vercel/analytics/next'
+import { RegisterSW } from '@/components/register-sw'
 import './globals.css'
 
 const poppins = Poppins({
@@ -25,6 +26,7 @@ export default function RootLayout({
   return (
     <html lang="fr" className={`${poppins.variable} ${handyMode.variable}`}>
       <body className="font-sans antialiased">
+        <RegisterSW />
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
