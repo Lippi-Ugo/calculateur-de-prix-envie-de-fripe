@@ -12,8 +12,8 @@ export default function Home() {
         <PriceCalculator />
       </div>
 
-      <footer className="border-t border-border py-6 text-center">
-        <p className="text-sm text-muted-foreground">
+      <footer className="mt-6 border-t border-border py-4 text-center">
+        <p className="text-sm text-muted-foreground mx-3">
           Calculateur de prix pour vêtements de seconde main
         </p>
       </footer>

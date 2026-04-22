@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
@@ -22,11 +22,9 @@ export function BrandManager() {
   const [editPrice, setEditPrice] = useState("")
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
-
-  // NOUVEAU : États pour recherche + scroll
   const [searchTerm, setSearchTerm] = useState("")
-  const listRef = useRef<HTMLDivElement>(null)
 
+  const nameInputRef = useRef<HTMLInputElement | null>(null)
   const supabase = createClient()
 
   async function fetchBrands() {
@@ -56,10 +54,10 @@ export function BrandManager() {
     }
   }, [errorMessage, successMessage])
 
-  // NOUVEAU : Filtrage des marques
   const filteredBrands = useMemo(() => {
     if (!searchTerm.trim()) return brands
-    return brands.filter(brand =>
+
+    return brands.filter((brand) =>
       brand.name.toLowerCase().includes(searchTerm.toLowerCase().trim())
     )
   }, [brands, searchTerm])
@@ -70,32 +68,46 @@ export function BrandManager() {
     setErrorMessage(null)
     setSuccessMessage(null)
 
+    const normalizedName = newBrandName.trim()
+
     const brandExists = brands.some(
-      (brand) => brand.name.toLowerCase() === newBrandName.trim().toLowerCase()
+      (brand) => brand.name.toLowerCase() === normalizedName.toLowerCase()
     )
 
     if (brandExists) {
-      setErrorMessage(`La marque "${newBrandName.trim()}" existe déjà.`)
+      setErrorMessage(`La marque "${normalizedName}" existe déjà.`)
+      setNewBrandName("")
+      setNewBrandPrice("")
+      nameInputRef.current?.focus()
       return
     }
 
     const { error } = await supabase.from("brands").insert({
-      name: newBrandName.trim(),
+      name: normalizedName,
       base_price: parseFloat(newBrandPrice),
     })
 
     if (error) {
       if (error.code === "23505") {
-        setErrorMessage(`La marque "${newBrandName.trim()}" existe déjà.`)
+        setErrorMessage(`La marque "${normalizedName}" existe déjà.`)
+        setNewBrandName("")
+        setNewBrandPrice("")
+        nameInputRef.current?.focus()
       } else {
         setErrorMessage("Une erreur est survenue lors de l'ajout.")
       }
     } else {
-      setSuccessMessage(`La marque "${newBrandName.trim()}" a été ajoutée.`)
+      setSuccessMessage(`La marque "${normalizedName}" a été ajoutée.`)
       setNewBrandName("")
       setNewBrandPrice("")
       fetchBrands()
+      nameInputRef.current?.focus()
     }
+  }
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    addBrand()
   }
 
   async function updateBrand(id: string) {
@@ -141,12 +153,11 @@ export function BrandManager() {
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
           Ajoute, modifie ou supprime les marques et leurs prix de base dans une
-          interface simple, claire et cohérente avec l'univers En'vie de Frip.
+          interface simple, claire et cohérente avec l'univers En&apos;vie de Frip.
         </p>
       </div>
 
       <div className="grid items-start gap-6 xl:grid-cols-[380px_1fr]">
-        {/* Formulaire d'ajout - INCHANGÉ */}
         <Card className="self-start border border-[#e7dfd1] bg-white/95 shadow-[0_18px_50px_rgba(62,43,14,0.08)]">
           <CardHeader className="border-b border-[#efe7da] bg-gradient-to-b from-[#fffdfa] to-[#f8f3ea]">
             <CardTitle className="font-display text-2xl text-[#8B5A2B]">
@@ -154,64 +165,65 @@ export function BrandManager() {
             </CardTitle>
           </CardHeader>
 
-          <CardContent className="space-y-5 p-6">
-            {errorMessage && (
-              <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3">
-                <p className="text-sm font-medium text-red-700">{errorMessage}</p>
+          <CardContent className="p-6">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {errorMessage && (
+                <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3">
+                  <p className="text-sm font-medium text-red-700">{errorMessage}</p>
+                </div>
+              )}
+
+              {successMessage && (
+                <div className="rounded-2xl border border-green-200 bg-green-50 px-4 py-3">
+                  <p className="text-sm font-medium text-green-700">{successMessage}</p>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="brand-name" className="text-sm font-semibold">
+                  Nom de la marque
+                </Label>
+                <Input
+                  id="brand-name"
+                  ref={nameInputRef}
+                  value={newBrandName}
+                  onChange={(e) => setNewBrandName(e.target.value)}
+                  placeholder="Ex : Balenciaga"
+                  className="h-12 rounded-xl border-[#d9cfbf] bg-[#fffdfa]"
+                />
               </div>
-            )}
 
-            {successMessage && (
-              <div className="rounded-2xl border border-green-200 bg-green-50 px-4 py-3">
-                <p className="text-sm font-medium text-green-700">{successMessage}</p>
+              <div className="space-y-2">
+                <Label htmlFor="brand-price" className="text-sm font-semibold">
+                  Prix de base (€)
+                </Label>
+                <Input
+                  id="brand-price"
+                  type="number"
+                  value={newBrandPrice}
+                  onChange={(e) => setNewBrandPrice(e.target.value)}
+                  placeholder="0.00"
+                  className="h-12 rounded-xl border-[#d9cfbf] bg-[#fffdfa]"
+                />
               </div>
-            )}
 
-            <div className="space-y-2">
-              <Label htmlFor="brand-name" className="text-sm font-semibold">
-                Nom de la marque
-              </Label>
-              <Input
-                id="brand-name"
-                value={newBrandName}
-                onChange={(e) => setNewBrandName(e.target.value)}
-                placeholder="Ex : Balenciaga"
-                className="h-12 rounded-xl border-[#d9cfbf] bg-[#fffdfa]"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="brand-price" className="text-sm font-semibold">
-                Prix de base (€)
-              </Label>
-              <Input
-                id="brand-price"
-                type="number"
-                value={newBrandPrice}
-                onChange={(e) => setNewBrandPrice(e.target.value)}
-                placeholder="0.00"
-                className="h-12 rounded-xl border-[#d9cfbf] bg-[#fffdfa]"
-              />
-            </div>
-
-            <Button
-              onClick={addBrand}
-              className="h-12 w-full rounded-xl bg-[#8B5A2B] text-white hover:bg-[#6B4423]"
-            >
-              Ajouter la marque
-            </Button>
+              <Button
+                type="submit"
+                className="h-12 w-full rounded-xl bg-[#8B5A2B] text-white hover:bg-[#6B4423]"
+              >
+                Ajouter la marque
+              </Button>
+            </form>
           </CardContent>
         </Card>
 
-        {/* Liste MODIFIÉE : recherche + scroll */}
         <Card className="border border-[#e7dfd1] bg-white/95 shadow-[0_18px_50px_rgba(62,43,14,0.08)]">
           <CardHeader className="border-b border-[#efe7da] bg-gradient-to-b from-[#fffdfa] to-[#f8f3ea] p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <CardTitle className="font-display text-2xl text-[#8B5A2B] flex-1">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <CardTitle className="flex-1 font-display text-2xl text-[#8B5A2B]">
                 Marques enregistrées ({filteredBrands.length})
               </CardTitle>
 
-              {/* NOUVEAU : Barre de recherche */}
               <div className="relative w-full sm:w-64">
                 <Input
                   value={searchTerm}
@@ -241,7 +253,7 @@ export function BrandManager() {
               <p className="py-10 text-center text-muted-foreground">Chargement...</p>
             ) : filteredBrands.length === 0 ? (
               <div className="py-12 text-center">
-                <p className="text-muted-foreground mb-4">
+                <p className="mb-4 text-muted-foreground">
                   {searchTerm ? "Aucune marque trouvée." : "Aucune marque enregistrée."}
                 </p>
                 {searchTerm && (
@@ -255,43 +267,51 @@ export function BrandManager() {
                 )}
               </div>
             ) : (
-              // NOUVEAU : Liste avec scroll
               <div
-                ref={listRef}
                 className="max-h-[calc(100vh-300px)] overflow-y-auto"
-                style={{ scrollbarWidth: 'thin', scrollbarColor: '#d9cfbf transparent' }}
+                style={{ scrollbarWidth: "thin", scrollbarColor: "#d9cfbf transparent" }}
               >
                 <div className="space-y-3 p-4 sm:p-6">
                   {filteredBrands.map((brand) => (
                     <div
                       key={brand.id}
-                      className="rounded-2xl border border-[#ece2d3] bg-[#fcfaf6] p-4 hover:shadow-md transition-all"
+                      className="rounded-2xl border border-[#ece2d3] bg-[#fcfaf6] p-4 transition-all hover:shadow-md"
                     >
                       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                        <div>
-                          <p className="text-lg font-semibold text-foreground">{brand.name}</p>
+                        <div className="min-w-0 flex-1">
+                          <p className="break-words text-lg font-semibold text-foreground">
+                            {brand.name}
+                          </p>
                           <p className="mt-1 text-sm text-muted-foreground">
                             Prix de base actuel
                           </p>
                         </div>
 
                         {editingId === brand.id ? (
-                          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                          <form
+                            onSubmit={(e) => {
+                              e.preventDefault()
+                              updateBrand(brand.id)
+                            }}
+                            className="flex flex-col gap-3 sm:flex-row sm:items-center"
+                          >
                             <Input
                               type="number"
                               value={editPrice}
                               onChange={(e) => setEditPrice(e.target.value)}
                               className="h-11 w-full rounded-xl border-[#d9cfbf] bg-white sm:w-32"
+                              autoFocus
                             />
                             <div className="flex gap-2">
                               <Button
+                                type="submit"
                                 size="sm"
-                                onClick={() => updateBrand(brand.id)}
                                 className="bg-[#B8860B] text-white hover:bg-[#8B5A2B]"
                               >
                                 Enregistrer
                               </Button>
                               <Button
+                                type="button"
                                 size="sm"
                                 variant="outline"
                                 onClick={() => {
@@ -303,10 +323,10 @@ export function BrandManager() {
                                 Annuler
                               </Button>
                             </div>
-                          </div>
+                          </form>
                         ) : (
                           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
-                            <span className="text-xl font-semibold text-[#8B5A2B]">
+                            <span className="whitespace-nowrap text-xl font-semibold text-[#8B5A2B]">
                               {brand.base_price.toFixed(2)} €
                             </span>
                             <div className="flex gap-2">
