@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -62,6 +62,10 @@ export function PriceCalculator() {
   const [condition, setCondition] = useState("")
   const [loading, setLoading] = useState(true)
 
+  const [brandOpen, setBrandOpen] = useState(false)
+  const [brandSearch, setBrandSearch] = useState("")
+  const brandDropdownRef = useRef<HTMLDivElement | null>(null)
+
   useEffect(() => {
     async function fetchBrands() {
       const supabase = createClient()
@@ -79,7 +83,41 @@ export function PriceCalculator() {
     fetchBrands()
   }, [])
 
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        brandDropdownRef.current &&
+        !brandDropdownRef.current.contains(event.target as Node)
+      ) {
+        setBrandOpen(false)
+      }
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setBrandOpen(false)
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside)
+    document.addEventListener("keydown", handleEscape)
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+      document.removeEventListener("keydown", handleEscape)
+    }
+  }, [])
+
   const selectedBrand = brands.find((brand) => brand.id === selectedBrandId)
+
+  const filteredBrands = useMemo(() => {
+    const query = brandSearch.trim().toLowerCase()
+    if (!query) return brands
+
+    return brands.filter((brand) =>
+      brand.name.toLowerCase().includes(query)
+    )
+  }, [brands, brandSearch])
 
   const shoeModifier = useMemo(() => {
     if (!shoeType) return 0
@@ -107,11 +145,13 @@ export function PriceCalculator() {
       step2 = step2 * (1 + shoeModifier)
     }
 
-    return Math.round(step2 * (1 + conditionMod) * 100) / 100
+    const calculatedPrice = step2 * (1 + conditionMod)
+
+    return Math.ceil(calculatedPrice)
   }, [selectedBrand, clothingType, shoeType, condition, shoeModifier])
 
   return (
-    <Card className="overflow-hidden border border-[#e7dfd1] bg-white/95 shadow-[0_18px_50px_rgba(62,43,14,0.08)] backdrop-blur">
+    <Card className="overflow-visible border border-[#e7dfd1] bg-white/95 shadow-[0_18px_50px_rgba(62,43,14,0.08)] backdrop-blur">
       <CardHeader className="border-b border-[#efe7da] bg-linear-to-b from-[#fffdfa] to-[#f8f3ea] px-5 py-6 sm:px-8">
         <div className="mb-2 inline-flex w-fit rounded-full border border-[#dcc8a4] bg-[#fbf6ed] px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-[#8B5A2B]">
           Calculateur
@@ -126,21 +166,91 @@ export function PriceCalculator() {
 
       <CardContent className="space-y-5 px-5 py-6 sm:px-8 sm:py-8">
         <div className="space-y-2">
-          <Label htmlFor="brand" className="text-sm font-semibold text-foreground">
+          <Label htmlFor="brand-search" className="text-sm font-semibold text-foreground">
             Marque
           </Label>
-          <Select value={selectedBrandId} onValueChange={setSelectedBrandId}>
-            <SelectTrigger className="h-12 rounded-xl border-[#d9cfbf] bg-[#fffdfa] text-left text-base shadow-none">
-              <SelectValue placeholder={loading ? "Chargement..." : "Sélectionnez une marque"} />
-            </SelectTrigger>
-            <SelectContent>
-              {brands.map((brand) => (
-                <SelectItem key={brand.id} value={brand.id}>
-                  {brand.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+
+          <div ref={brandDropdownRef} className="relative inline-block w-fit">
+            <button
+              type="button"
+              onClick={() => setBrandOpen((prev) => !prev)}
+              className="inline-flex h-10 w-fit items-center justify-between gap-2 rounded-xl border border-[#d9cfbf] bg-[#fffdfa] px-4 text-left text-sm shadow-none transition hover:border-[#8B5A2B] focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/20 whitespace-nowrap"
+            >
+              <span className={`${selectedBrand ? "text-foreground" : "text-muted-foreground"}`}>
+                {selectedBrand
+                  ? selectedBrand.name
+                  : loading
+                    ? "Chargement..."
+                    : "Sélectionnez une marque"}
+              </span>
+
+              <svg
+                className={`h-4 w-4 shrink-0 transition ${brandOpen ? "rotate-180" : ""}`}
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.51a.75.75 0 0 1-1.08 0l-4.25-4.51a.75.75 0 0 1 .02-1.06Z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </button>
+
+            {brandOpen && (
+              <div className="absolute left-0 top-[calc(100%+0.5rem)] z-20 w-[320px] overflow-hidden rounded-xl border border-[#e7dfd1] bg-white shadow-[0_18px_50px_rgba(62,43,14,0.12)]">
+                <div className="border-b border-[#efe7da] p-3">
+                  <div className="relative">
+                    <svg
+                      className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <circle cx="11" cy="11" r="7" />
+                      <path d="m20 20-3.5-3.5" />
+                    </svg>
+
+                    <input
+                      id="brand-search"
+                      type="text"
+                      value={brandSearch}
+                      onChange={(e) => setBrandSearch(e.target.value)}
+                      placeholder="Rechercher une marque..."
+                      className="h-10 w-full rounded-lg border border-[#d9cfbf] bg-[#fffdfa] pl-10 pr-3 text-sm outline-none transition focus:border-[#8B5A2B]"
+                      autoFocus
+                    />
+                  </div>
+                </div>
+
+                <div className="max-h-[240px] overflow-y-auto p-1">
+                  {filteredBrands.length > 0 ? (
+                    filteredBrands.map((brand) => (
+                      <button
+                        key={brand.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedBrandId(brand.id)
+                          setBrandOpen(false)
+                          setBrandSearch("")
+                        }}
+                        className={`flex min-h-10 w-full items-center rounded-lg px-3 py-2 text-left text-sm transition hover:bg-[#f8f1e7] ${selectedBrandId === brand.id ? "bg-[#fbf4e6] text-[#8B5A2B]" : ""
+                          }`}
+                      >
+                        <span className="truncate">{brand.name}</span>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="px-3 py-4 text-sm text-muted-foreground">
+                      Aucune marque trouvée.
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="space-y-2">
@@ -154,7 +264,7 @@ export function PriceCalculator() {
               setShoeType("")
             }}
           >
-            <SelectTrigger className="h-12 rounded-xl border-[#d9cfbf] bg-[#fffdfa] text-left text-base shadow-none">
+            <SelectTrigger className="h-10 rounded-xl border-[#d9cfbf] bg-[#fffdfa] text-sm shadow-none">
               <SelectValue placeholder="Sélectionnez un type" />
             </SelectTrigger>
             <SelectContent>
@@ -173,7 +283,7 @@ export function PriceCalculator() {
               Type de chaussure
             </Label>
             <Select value={shoeType} onValueChange={setShoeType}>
-              <SelectTrigger className="h-12 rounded-xl border-[#d9cfbf] bg-[#fffdfa] text-left text-base shadow-none">
+              <SelectTrigger className="h-10 rounded-xl border-[#d9cfbf] bg-[#fffdfa] text-sm shadow-none">
                 <SelectValue placeholder="Sélectionnez un type de chaussure" />
               </SelectTrigger>
               <SelectContent>
@@ -213,7 +323,7 @@ export function PriceCalculator() {
             État
           </Label>
           <Select value={condition} onValueChange={setCondition}>
-            <SelectTrigger className="h-12 rounded-xl border-[#d9cfbf] bg-[#fffdfa] text-left text-base shadow-none">
+            <SelectTrigger className="h-10 rounded-xl border-[#d9cfbf] bg-[#fffdfa] text-sm shadow-none">
               <SelectValue placeholder="Sélectionnez un état" />
             </SelectTrigger>
             <SelectContent>
