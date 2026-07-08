@@ -13,7 +13,7 @@ interface Brand {
 }
 
 const clothingTypes = [
-  { id: "veste", label: "Veste", modifier: 0.2 },
+  { id: "veste", label: "Veste", modifier: 0.21 },
   { id: "bas", label: "Bas", modifier: -0.1 },
   { id: "haut", label: "Haut", modifier: -0.2 },
   { id: "tenue", label: "Tenue", modifier: 0.1 },
